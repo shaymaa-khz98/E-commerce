@@ -13,16 +13,21 @@
 
 const { Sequelize } = require("sequelize");
 
-const sequelize = new Sequelize(
-  "bnqg4bxlqr3odoqj1rma", // database name
-  "uo65gaeqx6mgo3t0",     // username
-  "EiRoi0r9lCbzWyMvmtCC", // password
-  {
-    host: "bnqg4bxlqr3odoqj1rma-mysql.services.clever-cloud.com",
-    port: 3306,
-    dialect: "mysql",
-    logging: false, // optional: to disable SQL logging in console
-  }
-);
+// const sequelize = new Sequelize(
+//   "bnqg4bxlqr3odoqj1rma", // database name
+//   "uo65gaeqx6mgo3t0",     // username
+//   "EiRoi0r9lCbzWyMvmtCC", // password
+//   {
+//     host: "bnqg4bxlqr3odoqj1rma-mysql.services.clever-cloud.com",
+//     port: 3306,
+//     dialect: "mysql",
+//     logging: false, // optional: to disable SQL logging in console
+//   }
+// );
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'mysql',
+  logging: false,
+});
 
 module.exports = sequelize;

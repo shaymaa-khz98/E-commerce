@@ -60,7 +60,7 @@ app.all('*' ,(req,res,next) =>{
 app.use(globalError);
 
 sequelize
-.sync({force:false})    
+.sync({force:false,alter:true})    
 .then(()=>{ 
     console.log("Connected to Database & Tables Created Successfully");
    const server = app.listen(5000 , ()=>{

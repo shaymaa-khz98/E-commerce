@@ -12,9 +12,9 @@
 // module.exports = sequelize;
 
 const { Sequelize } = require('sequelize');
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: 'mysql', // أو 'postgres' حسب نوع القاعدة
-  logging: false,
-});
 
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'mysql',
+  logging: false, // optional
+});
 module.exports = sequelize;

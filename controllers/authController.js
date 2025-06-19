@@ -56,14 +56,14 @@ exports.protect = asyncHandler(async(req,res,next) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
     token = req.headers.authorization.split(' ')[1]
-    console.log(token)
+    // console.log(token)
   }
   if(!token) {
     return next(new ApiError('you are not login to get access this rout' , 401))
   }
   // 2) verify token (no change happens , expired token)
    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-   console.log('//////////',decoded);
+  //  console.log('//////////',decoded);
   // 3) check if user exists
   const currentUser = await User.findByPk(decoded.userId)
 

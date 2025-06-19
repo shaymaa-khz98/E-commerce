@@ -183,8 +183,8 @@ exports.checkoutSession = asyncHandler(async(req,res,next) => {
       },
     ],
     mode: 'payment',
-    success_url: `${req.protocol}://${req.get('host')}/orders`,
-    cancel_url: `${req.protocol}://${req.get('host')}/cart`,
+    success_url: `${req.protocol}://${req.get('host')}/success.html`,
+    cancel_url: `${req.protocol}://${req.get('host')}/api/v1/cart`,
     customer_email: req.user.email,
     client_reference_id: req.params.cartId,
     metadata: {
@@ -195,4 +195,96 @@ exports.checkoutSession = asyncHandler(async(req,res,next) => {
   // 4) Send session in response
    res.status(200).json({ status: 'success', session });
 
+})
+
+exports.createCardOrder = asyncHandler(async (session) => {
+  console.log("📦 Creating order from session:", session.id);
+  const cartId = session.client_reference_id;
+  const shippingAddress = session.metadata;
+  const orderPrice = session.amount_total / 100;
+
+  // 1) Find cart and user
+  const cart = await Cart.findByPk(cartId, {
+    include: [{ 
+      model: CartItem ,
+      as:'cartItems', 
+  
+      include: [{model: Product, as: 'product'}] 
+    }]
+  });
+
+  if (!cart) throw new Error("Cart not found");
+
+  const user = await User.findOne({
+    where: { email: session.customer_email }
+  });
+
+  if (!user) throw new Error("User not found");
+
+  // 2) Create order
+  const order = await Order.create({
+    userId: user.id,
+    shippingAddress,
+    totalOrderPrice: orderPrice,
+    isPaid: true,
+    paidAt: new Date(),
+    paymentMethodType: 'card',
+  });
+
+  // 3) Create OrderItems based on cartItems (if needed)
+  const cartItems = cart.cartItems;
+
+  for (const item of cartItems) {
+      await Product.increment(
+      { sold: item.quantity },
+      { where: { id: item.productId } }
+    );
+
+    await Product.decrement(
+      { quantity: item.quantity },
+      { where: { id: item.productId } }
+    );
+   }
+
+  // 5) Delete the cart and its items
+  await CartItem.destroy({ where: { cartId } });
+  await Cart.destroy({ where: { id: cartId } });
+});
+
+
+exports.webhookCheckOut = asyncHandler(async(req,res,next) => {
+
+  console.log('11111111111111111')
+    const sig = req.headers['stripe-signature'];
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body, 
+      sig, 
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error('Webhook signature verification failed.', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // ✅ تحققنا من Stripe، الآن نتعامل مع الأحداث
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+
+    // 🟢 هنا تنشئي Order في قاعدة البيانات بناءً على بيانات session
+    console.log("💵 Payment Success, session:", session);
+
+    // مثال:
+    // const order = await Order.create({
+    //   userEmail: session.customer_email,
+    //   cartId: session.client_reference_id,
+    //   totalAmount: session.amount_total / 100
+    // });
+    await exports.createCardOrder(session)
+
+  }
+
+  res.status(200).json({ received: true });
 })

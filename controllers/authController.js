@@ -9,6 +9,7 @@ const { Op } = require("sequelize");
 const jwt = require('jsonwebtoken')
 
 const createToken = require("../utils/createToken");
+const { sanitizeUser } = require("../utils/sanitizeData");
 
 
 // method to generate token
@@ -30,7 +31,7 @@ exports.signup = asyncHandler(async(req,res,next) =>{
     });
     // 2) Generate Token
     const token = createToken(user.id);
-    res.status(201).send({data : user , token}) //201 for create
+    res.status(201).send({data : sanitizeUser(user) , token}) //201 for create
 
 })
 
@@ -44,8 +45,15 @@ exports.login = asyncHandler(async(req,res,next) =>{
  }
   // 3) generate token
   const token = createToken(user.id);
+
+   res.cookie('token', token, {
+    httpOnly: true,                         // لا يمكن الوصول لها من JavaScript
+    secure: process.env.NODE_ENV === 'production',  // فقط في HTTPS (تفعيل في الإنتاج)
+    sameSite: 'Strict',                     // الحماية من CSRF
+    maxAge: 7 * 24 * 60 * 60 * 1000         // صلاحية الكوكي: أسبوع
+  });
   // console.log(user.id)
-  res.status(200).send({data : user , token :token})
+  res.status(200).send({data : sanitizeUser(user), token :token})
   // 4) send response to the client side
 })
 
@@ -56,14 +64,18 @@ exports.protect = asyncHandler(async(req,res,next) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
     token = req.headers.authorization.split(' ')[1]
-    // console.log(token)
+    console.log(token)
+  }else if (req.cookies && req.cookies.token) {
+    // التوكن من الكوكي
+    token = req.cookies.token;
   }
+  
   if(!token) {
     return next(new ApiError('you are not login to get access this rout' , 401))
   }
   // 2) verify token (no change happens , expired token)
    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-  //  console.log('//////////',decoded);
+   console.log('//////////',decoded);
   // 3) check if user exists
   const currentUser = await User.findByPk(decoded.userId)
 
@@ -228,3 +240,28 @@ exports.resetPassword = asyncHandler(async(req,res,next)=>{
   const token = createToken(user.id);
   res.status(200).send({token})
 })
+
+exports.logout = (req, res) => {
+  const token = req.cookies.token;
+
+  if (token) {
+    try {
+      const decoded = jwt.decode(token);
+      console.log('User logging out:', decoded.userId);
+    } catch (err) {
+      console.error('Failed to decode token');
+    }
+  }
+
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Strict'
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'تم تسجيل الخروج بنجاح'
+  });
+};
+

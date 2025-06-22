@@ -33,22 +33,46 @@ class apiFeatures {
     return this;
   }
   //Sorting
-  sort(){
-  if(this.queryParams.sort){
-    const sortFields = this.queryParams.sort.split(',').map(sortField =>{
-      if(sortField.startsWith('-')){
-         return [sortField.substring(1) , 'DESC']
-      }
-      return [sortField , 'ASC']
-    })
-    this.queryOptions.order = sortFields;
+//   sort(){
+//   if(this.queryParams.sort){
+//     const sortFields = this.queryParams.sort.split(',').map(sortField =>{
+//       if(sortField.startsWith('-')){
+//          return [sortField.substring(1) , 'DESC']
+//       }
+//       return [sortField , 'ASC']
+//     })
+//     this.queryOptions.order = sortFields;
     
-  } 
-  // else{
-  //   this.queryOptions.order = [['createdAt' ,'DESC']]
-  // }
+//   } 
+//   // else{
+//   //   this.queryOptions.order = [['createdAt' ,'DESC']]
+//   // }
+//   return this;
+// }
+
+sort() {
+  if (this.queryParams.sort) {
+    const sortParam = Array.isArray(this.queryParams.sort)
+      ? this.queryParams.sort.join(',')  // [‘price’, ‘-name’] → ‘price,-name’
+      : this.queryParams.sort;
+
+    const sortFields = sortParam.split(',').map(sortField => {
+      if (sortField.startsWith('-')) {
+        return [sortField.substring(1), 'DESC'];
+      }
+      return [sortField, 'ASC'];
+    });
+
+    this.queryOptions.order = sortFields;
+  }
+
   return this;
 }
+
+
+
+
+
 // 3) Paginate
 paginate(countDocuments){
   const page = this.queryParams.page * 1 || 1;
@@ -80,7 +104,10 @@ paginate(countDocuments){
 // 4) Fields Limiting
 limitFields(){
   if(this.queryParams.fields){
-    const fields = this.queryParams.fields.split(',');
+    const fields = Array.isArray(this.queryParams.fields)
+      ? this.queryParams.fields.join(',') 
+      : this.queryParams.fields;
+     
       if(fields[0].startsWith('-')){
         this.queryOptions.attributes = {
           exclude: fields.map(field => field.substring(1))

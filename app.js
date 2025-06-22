@@ -1,52 +1,20 @@
-console.log("🚀 App file started");
-
-
 const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config()
-const morgan = require('morgan')
-const cors = require('cors');
-const compression = require('compression');
-const bodyParser = require('body-parser');
 
+
+const applySecurityMiddleware = require('./config/security');
 const sequelize = require('./config/database');
 const ApiError = require('./utils/apiError')
 const globalError = require('./middlewares/errorMiddlewares')
 
 // //Routes
-const mountRoutes = require('./routes');
-const { webhookCheckOut } = require('./controllers/orderController');
-
+const mountRoutes = require('./routes')
 
 //INSTANCE
 const app = express();
 
-app.post('/webhook-checkout', 
-    bodyParser.raw({ type: 'application/json' }),
-    webhookCheckOut
-)
-
-
-// Enable CORS for all origins "enables other domains to access your application"
-app.use(cors());
-app.options('*', cors()) // include before other routes
-/* 
-this is the default configuration about corse() ...
-{
-  "origin": "*",
-  "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-  "preflightContinue": false,
-  "optionsSuccessStatus": 204
-}
-*/ 
-
-//Compress all responses
-app.use(compression());
-
-if(process.env.NODE_ENV == 'development'){
-    app.use(morgan('dev')); 
-    console.log(`mode ${process.env.NODE_ENV}`)
-}  
+ 
 
 
 app.get('/' ,(req,res)=>{
@@ -55,17 +23,14 @@ app.get('/' ,(req,res)=>{
 })
 
 //MIDDLWARES
-app.use(express.json());
-app.use(express.urlencoded({extended:true}))
-app.use(express.static('uploads'))
+
+applySecurityMiddleware(app);
+
 
 //Routes
 mountRoutes(app);
 
 app.all('*' ,(req,res,next) =>{
-    if (req.originalUrl === '/favicon.ico') {
-    return res.status(204).end(); // No Content
-  } 
     // const err = new Error(`Cant find this rout : ${req.originalUrl}`)
     next(new ApiError(`Cant find this rout : ${req.originalUrl}`, 400))
 })
@@ -81,7 +46,7 @@ sequelize
      console.log('Server Started : 5000')
     })
 
-})  
+})
 .catch((error)=>{
     console.log('connection Authentication error '+error)
 })

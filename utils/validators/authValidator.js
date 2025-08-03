@@ -4,8 +4,6 @@ const User = require("../../models/userModel");
 const { default: slugify } = require("slugify");
 
 
-
-
 exports.signupValidator = [
   check("name")
     .notEmpty() 
@@ -30,7 +28,6 @@ exports.signupValidator = [
         return Promise.reject('E-mail already in use ')
        }
       }),
-
       check('password')
        .notEmpty()
        .withMessage('password required')

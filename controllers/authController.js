@@ -11,15 +11,12 @@ const jwt = require('jsonwebtoken')
 const createToken = require("../utils/createToken");
 const { sanitizeUser } = require("../utils/sanitizeData");
 
-
 // method to generate token
 // const createToken = (payload) => { // if i have an arrow function => default returning value
 //   return jwt.sign({userId : payload} , process.env.JWT_SECRET_KEY,{
 //         expiresIn : process.env.JWT_EXPIRED_TIME,
 //     })
 // }
-
-
 
 exports.signup = asyncHandler(async(req,res,next) =>{
     // 1) create User
@@ -32,8 +29,9 @@ exports.signup = asyncHandler(async(req,res,next) =>{
     // 2) Generate Token
     const token = createToken(user.id);
     res.status(201).send({data : sanitizeUser(user) , token}) //201 for create
-
 })
+
+
 
 exports.login = asyncHandler(async(req,res,next) =>{
  // 1) check if the password and email in the body (validation layer)
@@ -58,6 +56,7 @@ exports.login = asyncHandler(async(req,res,next) =>{
 })
 
 
+
 exports.protect = asyncHandler(async(req,res,next) => {
   // console.log("[[[[[[[[",req.headers)
   // 1) check if token exist get
@@ -69,13 +68,13 @@ exports.protect = asyncHandler(async(req,res,next) => {
     // التوكن من الكوكي
     token = req.cookies.token;
   }
-  
   if(!token) {
     return next(new ApiError('you are not login to get access this rout' , 401))
   }
   // 2) verify token (no change happens , expired token)
    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
    console.log('//////////',decoded);
+   
   // 3) check if user exists
   const currentUser = await User.findByPk(decoded.userId)
 
@@ -99,6 +98,9 @@ exports.protect = asyncHandler(async(req,res,next) => {
   req.user = currentUser;
   next();
 })
+
+
+
 exports.softProtect = asyncHandler(async(req,res,next) => {
   console.log(req.headers)
   // 1) check if token exist get
@@ -133,15 +135,15 @@ exports.softProtect = asyncHandler(async(req,res,next) => {
   console.log("777777",currentUser.active)
   next();
 })
+
 // ["admin" , "manager"]
 exports.allowedTo = (...roles) => 
   asyncHandler(async(req,res,next) => {
   // 1) access roles
   // 2) access registered user (req.user.role)
-
   if(!roles.includes(req.user.role)) {
     return next(
-      new ApiError('You are not allowed ti access this route ..' , 403)
+      new ApiError('You are not allowed to access this route ..' , 403)
     );
   }
   next();
@@ -150,7 +152,7 @@ exports.allowedTo = (...roles) =>
 exports.forgotPssword = asyncHandler(async(req,res,next) => {
   // 1) Get user by email
   const user = await User.findOne({where :{email : req.body.email}});
-  if(!user) {
+  if(!user) { 
     return next(
       new ApiError(`There is no user with that email ${req.body.email}` , 404)) // "not Found"
   }
@@ -161,8 +163,10 @@ const hashedResetCode = crypto
     .createHash('sha256')
     .update(resetCode)
     .digest('hex')
+
   // save hashed password reset code into db
   user.passwordResetCode = hashedResetCode;
+
   //Add expiration time for password reset code (10 min)
   user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   user.passwordResetVerified = false; 

@@ -8,7 +8,7 @@ const validatorMiddleware = (req,res,next)=>{
      
     }
 
-    next(); // So if there is No validator error , So go tho the next => getCategory middlewares
+    next(); // if there is No validator error , So go tho the next => getCategory middlewares
 }
 
 module.exports = validatorMiddleware;

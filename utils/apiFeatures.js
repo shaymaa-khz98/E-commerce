@@ -28,7 +28,6 @@ class apiFeatures {
         where[key] = value;
       }
     }
-
     this.queryOptions.where = where;
     return this;
   }
@@ -70,9 +69,6 @@ sort() {
 }
 
 
-
-
-
 // 3) Paginate
 paginate(countDocuments){
   const page = this.queryParams.page * 1 || 1;
@@ -108,13 +104,14 @@ limitFields(){
       ? this.queryParams.fields.join(',') 
       : this.queryParams.fields;
      
-      if(fields[0].startsWith('-')){
+     const fieldsArray = fields.split(',');
+     if (fieldsArray[0].startsWith('-')) {
         this.queryOptions.attributes = {
-          exclude: fields.map(field => field.substring(1))
-        };
-      }else {
-        this.queryOptions.attributes = fields;
-      }
+        exclude: fieldsArray.map(field => field.substring(1))
+      };
+     } else {
+       this.queryOptions.attributes = fieldsArray;
+     }
   }
   return this ;
 };
@@ -123,8 +120,7 @@ search(modelName) {
   if (this.queryParams.keyword) {
     const currentWhere = this.queryOptions.where || {};
     const keyword = this.queryParams.keyword;
-
-    if (modelName === 'Product') {
+      if (modelName === 'Product') {
       this.queryOptions.where = {
         ...currentWhere,
         [Op.or]: [

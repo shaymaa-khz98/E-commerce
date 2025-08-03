@@ -14,7 +14,6 @@ const mountRoutes = require('./routes')
 //INSTANCE
 const app = express();
 
- 
 
 
 app.get('/' ,(req,res)=>{
@@ -46,7 +45,7 @@ sequelize
      console.log('Server Started : 5000')
     })
 
-})
+}) 
 .catch((error)=>{
     console.log('connection Authentication error '+error)
 })

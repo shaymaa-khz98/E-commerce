@@ -19,6 +19,7 @@ exports.getAll = (Model, modelName, includeOptions = null) =>{
         .paginate(countDocuments);
 
       const { queryOptions, paginationResult } = apiFeature;
+      
       queryOptions.where = {
       ...filter,
       ...(queryOptions.where || {}) // Preserve search and merge with filter

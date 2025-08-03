@@ -5,13 +5,7 @@ const globalError = (err,req,res,next)=>{
     
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
-    // res.status(404).send({status:false , message:"Not Foundddd" , error : err})
-    // res.status(err.statusCode).send({ 
-    //     status: err.status ,
-    //      error: err , 
-    //      message: err.message ,
-    //      stack: err.stack
-    //     });
+
 const handleJwtInvalidSignature = ()=> {
    return new ApiError('Invalid Token , please login again ...' , 401);
 }
@@ -29,7 +23,6 @@ const handleJwtExpired = ()=> {
 }
 
 const sendErrorForDev = (err , res) =>{
-
     return res.status(err.statusCode).send({
         status: err.status ,
          error: err , 

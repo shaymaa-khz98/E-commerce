@@ -32,8 +32,9 @@ exports.resizingImage = asyncHandler(async(req,res,next) =>{
 exports.getUsers = factory.getAll(User)
 exports.getUser = factory.getOne(User);
 
-exports.store = factory.storeOne(User);  
+exports.store = factory.storeOne(User); 
 
+//Update Role
 exports.update = asyncHandler(async(req,res,next) =>{
         const {id} = req.params;
         const user = await User.findByPk(id);
@@ -130,14 +131,11 @@ exports.updateLoggedUserData = asyncHandler(async(req,res,next)=> {
        data: updatedUser
 })
 })
-
 exports.deActivateLoggedUserData = asyncHandler(async(req,res,next) =>{
   const user = await User.findByPk(req.user.id);
   await user.update({active : false})
   res.status(204).send({status:"success"})
 })
-
-
 exports.reactivateAccount = asyncHandler(async(req,res,next) =>{
   const user = await User.findByPk(req.user.id);
   

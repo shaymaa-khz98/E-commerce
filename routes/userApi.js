@@ -32,7 +32,7 @@ const router = express.Router();
 
 router.get('/getMe',
     authController.protect,
-    getLoggedUserData , 
+    getLoggedUserData, 
     getUser
 );
 router.put(

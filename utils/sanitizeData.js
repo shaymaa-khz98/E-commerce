@@ -6,3 +6,4 @@ exports.sanitizeUser = (user) =>{
         email: user.email,
     };
 };
+
